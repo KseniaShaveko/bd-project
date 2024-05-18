@@ -11,12 +11,10 @@
   <button type="submit">Поиск</button>
 </form>
 
-
-
 <ul>
   {#each data.array as elem}
     <li>
-      <a href={`/${elem.id}`}>{elem.title}</a>
+      <a href={`/${elem.id}`}>{elem.name}</a>
     </li>
   {/each}
 </ul>
