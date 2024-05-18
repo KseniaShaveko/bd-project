@@ -1,10 +1,98 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { relations } from 'drizzle-orm';
+import {
+  integer,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from 'drizzle-orm/sqlite-core';
 
-export const articleTable = sqliteTable('article', {
+export const phoneTable = sqliteTable(
+  'phone',
+  {
+    id: integer('id').primaryKey(),
+    name: text('name').notNull(),
+    description: text('description').notNull(),
+    manufacturer: text('manufacturer').notNull(),
+    year: integer('year').notNull(),
+    price: integer('price').notNull(),
+  },
+  (phone) => ({
+    nameIndex: uniqueIndex('phone_unique_name').on(phone.name),
+  })
+);
+
+export const phoneRelations = relations(phoneTable, ({ many, one }) => ({
+  photos: many(photoTable),
+  offers: many(offerTable),
+  characteristics: one(characteristicsTable),
+}));
+
+export type Phone = typeof phoneTable.$inferSelect;
+export type NewPhone = typeof phoneTable.$inferInsert;
+
+export const photoTable = sqliteTable('photo', {
   id: integer('id').primaryKey(),
-  title: text('title').notNull(),
-  body: text('body').notNull(),
+  url: text('url').notNull(),
+  phoneId: integer('phoneId').references(() => phoneTable.id),
 });
 
-export type Article = typeof articleTable.$inferSelect;
-export type NewArticle = typeof articleTable.$inferInsert;
+export const photoRelations = relations(photoTable, ({ one }) => ({
+  phone: one(phoneTable, {
+    fields: [photoTable.phoneId],
+    references: [phoneTable.id],
+  }),
+}));
+
+export type Photo = typeof photoTable.$inferSelect;
+export type NewPhoto = typeof photoTable.$inferInsert;
+
+export const offerTable = sqliteTable('offer', {
+  id: integer('id').primaryKey(),
+  vendor: text('vendor').notNull(),
+  url: text('url').notNull(),
+  description: text('description').notNull(),
+  phoneId: integer('phoneId').references(() => phoneTable.id),
+});
+
+export const offerRelations = relations(offerTable, ({ one }) => ({
+  phone: one(phoneTable, {
+    fields: [offerTable.phoneId],
+    references: [phoneTable.id],
+  }),
+}));
+
+export type Offer = typeof offerTable.$inferSelect;
+export type NewOffer = typeof offerTable.$inferInsert;
+
+export const characteristicsTable = sqliteTable('characteristics', {
+  id: integer('id').primaryKey(),
+  color: text('color'),
+  simCards: text('simCards'),
+  diagonal: text('diagonal'),
+  resolution: text('resolution'),
+  material: text('material'),
+  operationSystem: text('operationSystem'),
+  cpu: text('cpu'),
+  gpu: text('gpu'),
+  ram: text('ram'),
+  storage: text('storage'),
+  backCameraQuality: text('backCameraQuality'),
+  frontCameraQuality: text('frontCameraQuality'),
+  chargingPort: text('chargingPort'),
+  audioPort: text('audioPort'),
+  batteryCapacity: text('batteryCapacity'),
+  phoneId: integer('phoneId').references(() => phoneTable.id),
+});
+
+export const characteristicsRelations = relations(
+  characteristicsTable,
+  ({ one }) => ({
+    phone: one(phoneTable, {
+      fields: [characteristicsTable.phoneId],
+      references: [phoneTable.id],
+    }),
+  })
+);
+
+export type Characteristics = typeof characteristicsTable.$inferSelect;
+export type NewCharacteristics = typeof characteristicsTable.$inferInsert;
