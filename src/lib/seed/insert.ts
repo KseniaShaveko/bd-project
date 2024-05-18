@@ -1,16 +1,19 @@
 import db from '$lib/db/db';
-import { articleTable, type NewArticle } from '$lib/db/schema';
+import { phoneTable, type NewPhone } from '$lib/db/schema';
 
-async function insertArticle(article: NewArticle) {
-  await db.insert(articleTable).values(article);
-  console.log(`${article.title} СОХРАНЕНО!!!!!!!!!!!!!!!!!!!`);
-  
+async function insertPhone(phone: NewPhone) {
+  await db
+    .insert(phoneTable)
+    .values(phone)
+    .onConflictDoUpdate({ target: [phoneTable.name], set: phone });
+
+  console.log(`${phone.name} СОХРАНЕНО!!!!!!!!!!!!!!!!!!!`);
 }
 
-export async function insertTransaction(article: NewArticle) {
+export async function insertTransaction(phone: NewPhone) {
   await db.transaction(async (tx) => {
     try {
-      insertArticle(article);
+      insertPhone(phone);
     } catch (error) {
       console.log(error);
       await tx.rollback();
