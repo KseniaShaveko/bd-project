@@ -15,8 +15,10 @@ export async function load({ url }) {
 
   const articles = await db.query.articleTable.findMany({
     orderBy: sortBy === 'desc' ? desc(articleTable.id) : asc(articleTable.id),
-    where: (value, { like, or }) =>
-      or(like(value.body, `%${search}%`), like(value.title, `%${search}%`)),
+    where: (value, { like, or }) => {
+      const searchText = search ? `%${search}%` : '%';
+      return or(like(value.body, searchText), like(value.title, searchText));
+    },
   });
 
   return {
