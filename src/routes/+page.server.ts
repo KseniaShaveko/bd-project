@@ -1,10 +1,13 @@
 import db from '$lib/db/db';
-import { phoneTable } from '$lib/db/schema.js';
+import { phoneTable, type Phone } from '$lib/db/schema.js';
 import { asc, desc } from 'drizzle-orm';
 
 export async function load({ url }) {
-  const sortBy = url.searchParams.get('sortBy');
   const search = url.searchParams.get('search');
+  const sortBy: keyof Phone =
+    (url.searchParams.get('sortBy') as keyof Phone) || 'id';
+  const sortOrder = url.searchParams.get('sortOrder');
+  const manufacturer = url.searchParams.get('manufacturer') || '';
 
   // const filteredArray = data.phones.filter((value) =>
   //   search ? value.body.includes(search) || value.title.includes(search) : true
@@ -14,15 +17,27 @@ export async function load({ url }) {
   // );
 
   const phones = await db.query.phoneTable.findMany({
-    orderBy: sortBy === 'desc' ? desc(phoneTable.id) : asc(phoneTable.id),
-    where: (value, { like, or }) => {
-      const searchText = search ? `%${search}%` : '%';
-      return like(value.name, searchText);
+    orderBy:
+      sortOrder === 'desc' ? desc(phoneTable[sortBy]) : asc(phoneTable[sortBy]),
+    where: (value, { like, and, eq }) => {
+      const searchCondition = like(value.name, `%${search}%`);
+      const manufacturerCondition = eq(value.manufacturer, manufacturer);
+      return and(
+        ...[
+          search ? searchCondition : undefined,
+          manufacturer ? manufacturerCondition : undefined,
+        ]
+      );
     },
   });
 
+  const allPhones = await db.query.phoneTable.findMany();
+
+  const manufacturers = new Set(allPhones.map((phone) => phone.manufacturer));
+
   return {
-    array: phones,
+    phones,
+    manufacturers,
   };
 }
 
