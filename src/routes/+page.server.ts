@@ -17,13 +17,13 @@ export async function load({ url }) {
   //   sortBy === 'desc' ? b.id - a.id : a.id - b.id
   // );
 
-  const pageSize = 10;
+  const pageSize = 12;
 
   const foundPhones = await db.query.phoneTable.findMany({
     orderBy:
       sortOrder === 'desc' ? desc(phoneTable[sortBy]) : asc(phoneTable[sortBy]),
-    where: (value, { like, and, eq }) => {
-      const searchCondition = like(value.name, `%${search}%`);
+    where: (value, { and, eq, sql }) => {
+      const searchCondition = sql`lower(${value.name}) like ${`%${search?.trim().toLowerCase()}%`}`;
       const manufacturerCondition = eq(value.manufacturer, manufacturer);
       return and(
         ...[
@@ -32,6 +32,7 @@ export async function load({ url }) {
         ]
       );
     },
+    with: { photos: true },
   });
 
   const offset = (page - 1) * pageSize;

@@ -10,7 +10,7 @@ async function seed() {
     headless: false,
   });
 
-  for (let page = 2; page <= 3; page++) {
+  for (let page = 1; page <= 7; page++) {
     // const getLinks = makeGetLinkFunction(
     //   'https://n-katalog.ru/category/mobilnye-telefony/list/page-' + page,
     //     'https://n-katalog.ru',
