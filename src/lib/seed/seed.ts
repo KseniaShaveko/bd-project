@@ -1,7 +1,7 @@
 import { insertTransaction } from './insert';
 import { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer';
-import { parseNkatalog, parseRbt, scrape, type FullPhone } from './scraper';
+import { parseNkatalog, parseRbt, parseHatico, scrape, type FullPhone } from './scraper';
 
 async function seed() {
   console.log('Запускаем браузер');
@@ -10,22 +10,27 @@ async function seed() {
     headless: false,
   });
 
-  for (let page = 3; page <= 3; page++) {
+  for (let page = 2; page <= 3; page++) {
     // const getLinks = makeGetLinkFunction(
     //   'https://n-katalog.ru/category/mobilnye-telefony/list/page-' + page,
     //     'https://n-katalog.ru',
     //     'a.model-short-title'
     // );
     const getLinks = makeGetLinkFunction(
-      'https://www.rbt.ru/cat/cifrovye_ustroistva/smartfony/~/page/' +
-        page +
-        '/',
-      'https://www.rbt.ru',
-      'a.link_theme_item-catalogue'
+      'https://voronezh.hatiko.ru/category/smartfony/?page=' + page,
+        'https://voronezh.hatiko.ru',
+        'a.s-product-header'
     );
+    // const getLinks = makeGetLinkFunction(
+    //   'https://www.rbt.ru/cat/cifrovye_ustroistva/smartfony/~/page/' +
+    //     page +
+    //     '/',
+    //   'https://www.rbt.ru',
+    //   'a.link_theme_item-catalogue'
+    // );
     const links = await getLinks(browser);
 
-    await parseLinks(links, browser, parseRbt);
+    await parseLinks(links, browser, parseHatico);
   }
 
   await browser.close();

@@ -173,6 +173,162 @@ export async function parseNkatalog(
   });
   return { phone, characteristics, photos, offers };
 }
+export async function parseHatico(
+  browser: Browser,
+  url: string
+): Promise<FullPhone> {
+  const { $ } = await scrape(browser, url);
+  const name = $('h1.pt-4').text().replace('Смартфон', '').trim();
+  const description = $('div.s-product-description').text().trim();
+  const manufacturer = name.split(' ')[0];
+
+  const price = Number($('div.s-prices-section.b-product-price span.fw-semibold span.price').first().text().trim().replaceAll(' ', ''));
+  const year = Number(
+    $('div.row td.s-features-wrapper__name:contains("Дата анонса")')
+      .next()
+      .text()
+      .trim()
+  );
+  const phone: NewPhone = {
+    name,
+    description,
+    manufacturer,
+    year,
+    price,
+    url,
+  };
+  const color =
+    $('div.row td.s-features-wrapper__name:contains("Цвет")')
+      .first()
+      .next()
+      .text()
+      .trim() || EMPTY;
+  const simCards =
+    $('div.row td.s-features-wrapper__name:contains("Кол-во симкарт")')
+      .next()
+      .text()
+      .trim() || EMPTY;
+  const diagonal =
+    $(
+      'div.row td.s-features-wrapper__name:contains("Диагональ экрана (дюймы)")'
+    )
+      .next()
+      .text()
+      .trim() ?? EMPTY;
+  const resolution =
+    $('div.row td.s-features-wrapper__name:contains("Разрешение дисплея")')
+      .next()
+      .text()
+      .trim() || EMPTY;
+  const material =
+    $('div.row td.s-features-wrapper__name:contains("Материал рамки/крышки")')
+      .next()
+      .text()
+      .trim() || EMPTY;
+  const operationSystem =
+    $('div.row td.s-features-wrapper__name:contains("Операционная система")')
+      .next()
+      .text()
+      .trim() || EMPTY;
+  const cpu =
+    $(
+      'div.row td.s-features-wrapper__name:contains("Производитель процессора")'
+    )
+      .next()
+      .text()
+      .trim() || EMPTY;
+  const gpu =
+    $('div.row td.s-features-wrapper__name:contains("Графический процессор")')
+      .next()
+      .text()
+      .trim() || EMPTY;
+  const ram =
+    $('div.row td.s-features-wrapper__name:contains("Оперативная память (Gb)")')
+      .next()
+      .text()
+      .trim() || EMPTY;
+  const storage =
+    $('div.row td.s-features-wrapper__name:contains("Встроенная память")')
+      .next()
+      .text()
+      .trim() || EMPTY;
+  const backCameraQuality =
+    $('div.row td.s-features-wrapper__name:contains("Основная камера (Mp)")')
+      .next()
+      .text()
+      .trim() || EMPTY;
+  const frontCameraQuality =
+    $('div.row td.s-features-wrapper__name:contains("Фронтальная камера (Mp)")')
+      .next()
+      .text()
+      .trim() || EMPTY;
+  const portsText =
+    $('div.row td.s-features-wrapper__name:contains("Порты подключения")')
+      .next()
+      .text()
+      .trim() || EMPTY;
+  let chargingPort = EMPTY;
+  let audioPort = EMPTY;
+  for (const text in portsText.split(',')) {
+    if (
+      text.toLowerCase().includes('usb') ||
+      text.toLowerCase().includes('lightning')
+    ) {
+      chargingPort = text.trim();
+    }
+    if (text.toLowerCase().includes('jack')) {
+      audioPort = text.trim();
+    }
+  }
+  const batteryCapacity =
+    $(
+      'div.row td.s-features-wrapper__name:contains("Емкость аккумулятора мА.ч")'
+    )
+      .next()
+      .text()
+      .trim() || EMPTY;
+  const characteristics: NewCharacteristics = {
+    color,
+    simCards,
+    diagonal,
+    resolution,
+    material,
+    operationSystem,
+    cpu,
+    gpu,
+    ram,
+    storage,
+    backCameraQuality,
+    frontCameraQuality,
+    chargingPort,
+    audioPort,
+    batteryCapacity,
+  };
+
+  const photos: NewPhoto[] = [];
+  $('div.b-product-images__thumbs-swiper div.swiper-slide img').each(
+    function () {
+      const photo: NewPhoto = { url: 'https://voronezh.hatiko.ru' + $(this).attr('data-src') ?? '' };
+      photos.push(photo);
+    }
+  );
+
+  const offers: NewOffer[] = [];
+  $('.desc-hot-prices tr').each(function () {
+    const vendor = $(this).find('.model-shop-name a u').text().trim() || EMPTY;
+    const description =
+      $(this).find('.model-shop-price a').text().trim() || EMPTY;
+    const offerUrl = '/';
+
+    const offer: NewOffer = {
+      vendor,
+      description,
+      url: offerUrl,
+    };
+    offers.push(offer);
+  });
+  return { phone, characteristics, photos, offers };
+}
 
 export async function parseRbt(
   browser: Browser,
